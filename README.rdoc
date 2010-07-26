@@ -3,18 +3,18 @@
 Usage:
 Provides expirable locking for concurrent processing.
 
-class MyModel < ActiveRecord::Base
-  extend ExpirableLocking
-end
+  class MyModel < ActiveRecord::Base
+    extend ExpirableLocking
+  end
 
-Process A: record.lock_with_expirey
-Process A: => true
-Process B: record.lock_with_expirey
-Process B: => false
-Process A: record.unlock
-Process A: => true
-Process B: record.lock_with_expirey
-Process B: => true
+  Process A: record.lock_with_expirey
+  Process A: => true
+  Process B: record.lock_with_expirey
+  Process B: => false
+  Process A: record.unlock
+  Process A: => true
+  Process B: record.lock_with_expirey
+  Process B: => true
 
 By default the lock expires after 10 mintutes, this can be changed by overriding the lock_duration class method.
 
