@@ -3,6 +3,8 @@
 Usage:
 Provides expirable locking for concurrent processing.
 
+  script/generate migration add_expirable_locking_to_my_model locked_at:datetime
+
   class MyModel < ActiveRecord::Base
     extend ExpirableLocking
   end
