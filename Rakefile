@@ -6,7 +6,7 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "expirable_locking"
     gem.summary = %Q{A tiny ActiveRecord extension for expirable locking.}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.description = %Q{A tiny ActiveRecord extension for expirable locking.}
     gem.email = "eac@zendesk.com"
     gem.homepage = "http://github.com/eac/expirable_locking"
     gem.authors = ["Eric Chapweske"]
