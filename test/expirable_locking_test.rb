@@ -43,12 +43,12 @@ class ExpirableLockingTest < ActiveRecord::TestCase
 
       should "fail for locked records" do
         @model.touch_lock(@record)
-        assert_equal false, @record.lock_with_expirey
+        assert_equal false, @record.lock_with_expiry
       end
 
       should "succeed for unlocked records" do
         assert @model.unlocked.include?(@record)
-        assert_equal true, @record.lock_with_expirey
+        assert_equal true, @record.lock_with_expiry
       end
 
     end
@@ -56,7 +56,7 @@ class ExpirableLockingTest < ActiveRecord::TestCase
     context "unlocking" do
 
       should "succeed without querying the database for deleted records" do
-        @record.lock_with_expirey
+        @record.lock_with_expiry
         @record.destroy
 
         @record.class.connection.expects(:update).never
@@ -64,15 +64,15 @@ class ExpirableLockingTest < ActiveRecord::TestCase
       end
 
       should "succeed when the lock hasn't expired" do
-        @record.lock_with_expirey
+        @record.lock_with_expiry
         assert_equal true, @record.unlock
       end
 
       should "fail when the lock expired and was re-aqcuired by another process" do
         Timecop.freeze(@model.lock_duration.ago - 1.second) do
-          @record.lock_with_expirey
+          @record.lock_with_expiry
         end
-        @model.find(@record).lock_with_expirey # Oh hi, other process
+        @model.find(@record).lock_with_expiry # Oh hi, other process
 
         assert_equal false, @record.unlock
       end

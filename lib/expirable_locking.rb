@@ -9,7 +9,7 @@ module ExpirableLocking
 
   module InstanceMethods
 
-    def lock_with_expirey
+    def lock_with_expiry
       self.class.lock(self)
     end
 
