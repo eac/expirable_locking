@@ -1,10 +1,13 @@
 module ExpirableLocking
 
   def self.extended(base)
-    base.named_scope :unlocked, lambda {
-      { :conditions => [ "locked_at IS NULL OR locked_at < ?", base.lock_duration.ago ] }
-    }
-    base.send(:include, InstanceMethods)
+    base.class_eval do
+      named_scope :unlocked, lambda {
+        { :conditions => [ "locked_at IS NULL OR locked_at < ?", base.lock_duration.ago ] }
+      }
+
+      include InstanceMethods
+    end
   end
 
   module InstanceMethods
@@ -30,19 +33,49 @@ module ExpirableLocking
   def unlock(record)
     return true if record.destroyed?
 
-    1 == update_all({ :locked_at => nil }, { :id => record, :locked_at => record.locked_at })
+    new_attributes = unlock_attributes
+    if result = (1 == update_all(new_attributes, { :id => record, :locked_at => record.locked_at }))
+
+      new_attributes.each do |key, value|
+        record.write_attribute_without_dirty(key, value)
+      end
+
+    end
+
+    result
   end
 
   # Updates lock timestamp without triggering validations/callbacks.
   def touch_lock(record)
-    locked_at = default_timezone == :utc ? Time.now.utc : Time.now
-    result    = update_all({ :locked_at => locked_at }, { :id => record })
+    new_attributes = lock_attributes
+    result = update_all(new_attributes, { :id => record })
 
     if result == 1
-      record.write_attribute_without_dirty(:locked_at, locked_at)
+      new_attributes.each do |key, value|
+        record.write_attribute_without_dirty(key, value)
+      end
     end
 
     result
+  end
+
+  def unlock_attributes
+    lock_attributes.tap do |attributes|
+      attributes.keys.each { |key| attributes[key] = nil }
+    end
+  end
+
+  def lock_attributes
+    locked_at = default_timezone == :utc ? Time.now.utc : Time.now
+
+    Hash.new.tap do |attributes|
+      attributes[:locked_at] = locked_at
+      attributes[:locked_by] = lock_name if method_defined?(:locked_by)
+    end
+  end
+
+  def lock_name
+    "#{`hostname`.chomp}:#{Process.pid}"
   end
 
 end

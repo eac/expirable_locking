@@ -24,6 +24,7 @@ ActiveRecord::Schema.define do
     table.timestamps
 
     table.datetime :locked_at
+    table.string   :locked_by
   end
 
 end

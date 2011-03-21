@@ -1,4 +1,5 @@
 require 'helper'
+require 'socket'
 
 class ExpirableLockingTest < ActiveRecord::TestCase
 
@@ -51,6 +52,27 @@ class ExpirableLockingTest < ActiveRecord::TestCase
         assert_equal true, @record.lock_with_expiry
       end
 
+      should "add the name of the locking process" do
+        assert_equal nil, @record.locked_by
+        @model.stubs(:lock_name).returns('host.example:1234')
+        assert @record.lock_with_expiry
+        @record.reload
+
+        assert_equal 'host.example:1234', @record.locked_by
+      end
+
+    end
+
+    context "lock_name" do
+
+      should "include the host name" do
+        assert_match Socket.gethostname, @model.lock_name
+      end
+
+      should "include the pid" do
+        assert_match Process.pid.to_s, @model.lock_name
+      end
+
     end
 
     context "unlocking" do
@@ -82,6 +104,8 @@ class ExpirableLockingTest < ActiveRecord::TestCase
         @record.unlock
 
         assert @model.unlocked.include?(@record)
+        assert_equal nil, @record.locked_at
+        assert_equal nil, @record.locked_by
       end
 
     end
@@ -102,4 +126,3 @@ class ExpirableLockingTest < ActiveRecord::TestCase
   end
 
 end
-
